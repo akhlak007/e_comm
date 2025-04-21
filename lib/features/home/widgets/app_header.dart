@@ -10,123 +10,127 @@ class AppHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appProvider = Provider.of<AppProvider>(context);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 16.0,
-        vertical: 12.0,
+        horizontal: AppTheme.paddingM,
+        vertical: AppTheme.paddingS,
       ),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.primary.withOpacity(0.85),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+        color: Theme.of(context).colorScheme.surface,
+        boxShadow: AppTheme.shadowSmall,
       ),
-      child: Row(
-        children: [
-          // Location Section
-          Expanded(
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.location_on,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      // Show location picker
-                      _showLocationPicker(context);
-                    },
-                    child: Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            appProvider.currentLocation,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+      child: SafeArea(
+        bottom: false,
+        child: Row(
+          children: [
+            // Location Dropdown
+            GestureDetector(
+              onTap: () => _showLocationPicker(context),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.location_on_outlined,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    appProvider.currentLocation,
+                    style: AppTheme.bodySmall.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+            const Spacer(),
+
+            // Notification Button
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: Stack(
+                  children: [
+                    const Icon(Icons.notifications_outlined, size: 20),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.surface,
+                            width: 2,
                           ),
                         ),
-                        const Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Colors.white,
-                          size: 16,
+                        constraints: const BoxConstraints(
+                          minWidth: 8,
+                          minHeight: 8,
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+                onPressed: () {
+                  // Handle notifications
+                },
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(),
+              ),
             ),
-          ),
-          
-          // Notification Bell
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            padding: const EdgeInsets.all(8),
-            child: Stack(
-              children: [
-                const Icon(
-                  Icons.notifications_outlined,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1),
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 6,
-                      minHeight: 6,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   void _showLocationPicker(BuildContext context) {
     final appProvider = Provider.of<AppProvider>(context, listen: false);
-    
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppTheme.radiusL),
+        ),
       ),
       builder: (context) {
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppTheme.paddingL),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Select Location',
-                style: AppTheme.heading2,
+              Row(
+                children: [
+                  Text(
+                    'Select Location',
+                    style: AppTheme.heading2.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
-              // Sample Locations
+              const SizedBox(height: AppTheme.paddingM),
               ...[
                 'New York, USA',
                 'Los Angeles, USA',
@@ -134,12 +138,21 @@ class AppHeader extends StatelessWidget {
                 'Tokyo, Japan',
                 'Sydney, Australia',
               ].map((location) => ListTile(
-                title: Text(location),
-                leading: const Icon(Icons.location_on),
+                title: Text(
+                  location,
+                  style: AppTheme.bodyMedium.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                leading: Icon(
+                  Icons.location_on_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 onTap: () {
                   appProvider.updateLocation(location);
                   Navigator.pop(context);
                 },
+                contentPadding: EdgeInsets.zero,
               )).toList(),
             ],
           ),

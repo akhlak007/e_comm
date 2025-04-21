@@ -1,58 +1,59 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_theme.dart';
 
 class SearchBarWidget extends StatelessWidget {
   const SearchBarWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.paddingM),
       child: Row(
         children: [
           // Search Input
           Expanded(
             child: Container(
-              height: 50,
+              height: 44,
               decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                borderRadius: BorderRadius.circular(AppTheme.radiusL),
               ),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search',
-                  hintStyle: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 14,
+                  hintText: 'Search products',
+                  hintStyle: AppTheme.bodyMedium.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   prefixIcon: Icon(
                     Icons.search,
-                    color: Colors.grey[500],
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    size: 20,
                   ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
-                    vertical: 15,
-                    horizontal: 16,
+                    horizontal: AppTheme.paddingM,
+                    vertical: AppTheme.paddingS,
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          
+          const SizedBox(width: AppTheme.paddingS),
+
           // Filter Button
           Container(
-            height: 50,
-            width: 50,
+            height: 44,
+            width: 44,
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusL),
             ),
             child: IconButton(
-              icon: const Icon(Icons.tune, color: Colors.white),
-              onPressed: () {
-                // Show filter options
-                _showFilterOptions(context);
-              },
+              icon: const Icon(Icons.tune_rounded, size: 20),
+              onPressed: () => _showFilterOptions(context),
+              color: Theme.of(context).colorScheme.onPrimary,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
             ),
           ),
         ],
@@ -64,40 +65,43 @@ class SearchBarWidget extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppTheme.radiusL),
+        ),
       ),
       builder: (context) {
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppTheme.paddingL),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Filter Products',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: AppTheme.heading2.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
+                  const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),
               const Divider(),
-              const SizedBox(height: 10),
-              
-              // Price Range
-              const Text(
+              const SizedBox(height: AppTheme.paddingM),
+
+              Text(
                 'Price Range',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                style: AppTheme.heading3.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppTheme.paddingS),
               RangeSlider(
                 values: const RangeValues(10, 100),
                 min: 0,
@@ -107,19 +111,17 @@ class SearchBarWidget extends StatelessWidget {
                 onChanged: (RangeValues values) {},
                 activeColor: Theme.of(context).colorScheme.primary,
               ),
-              
-              // Categories
-              const SizedBox(height: 15),
-              const Text(
+
+              const SizedBox(height: AppTheme.paddingL),
+              Text(
                 'Categories',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                style: AppTheme.heading3.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppTheme.paddingS),
               Wrap(
-                spacing: 8,
+                spacing: AppTheme.paddingS,
                 children: [
                   'All',
                   'Clothes',
@@ -128,45 +130,64 @@ class SearchBarWidget extends StatelessWidget {
                   'Watches',
                   'Accessories',
                 ].map((category) => FilterChip(
-                  label: Text(category),
+                  label: Text(
+                    category,
+                    style: AppTheme.bodySmall.copyWith(
+                      color: category == 'All'
+                          ? Theme.of(context).colorScheme.onPrimary
+                          : Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
                   selected: category == 'All',
                   onSelected: (selected) {},
-                  backgroundColor: Colors.grey[200],
-                  selectedColor: Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                  selectedColor: Theme.of(context).colorScheme.primary,
+                  checkmarkColor: Theme.of(context).colorScheme.onPrimary,
                 )).toList(),
               ),
-              
-              // Rating
-              const SizedBox(height: 15),
-              const Text(
+
+              const SizedBox(height: AppTheme.paddingL),
+              Text(
                 'Rating',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                style: AppTheme.heading3.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppTheme.paddingS),
               Row(
-                children: List.generate(5, (index) => Icon(
-                  Icons.star,
-                  color: index < 4 
-                      ? Theme.of(context).colorScheme.primary 
-                      : Colors.grey[300],
-                  size: 30,
-                )),
+                children: List.generate(
+                  5,
+                      (index) => Icon(
+                    Icons.star_rounded,
+                    color: index < 4
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.outline,
+                    size: 32,
+                  ),
+                ),
               ),
-              
-              const SizedBox(height: 20),
+
+              const SizedBox(height: AppTheme.paddingL),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppTheme.paddingM,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusL),
+                    ),
                   ),
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Apply Filters'),
+                  child: Text(
+                    'Apply Filters',
+                    style: AppTheme.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ],

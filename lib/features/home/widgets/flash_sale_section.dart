@@ -12,13 +12,11 @@ class FlashSaleSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appProvider = Provider.of<AppProvider>(context);
-    
-    // Filter types
     const filterTypes = ['All', 'Newest', 'Popular', 'Clothes'];
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header with title and countdown
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
@@ -44,8 +42,7 @@ class FlashSaleSection extends StatelessWidget {
             ],
           ),
         ),
-        
-        // Filter tabs
+
         SizedBox(
           height: 40,
           child: ListView.builder(
@@ -54,7 +51,7 @@ class FlashSaleSection extends StatelessWidget {
             itemCount: filterTypes.length,
             itemBuilder: (context, index) {
               final isSelected = appProvider.selectedFlashSaleFilter == index;
-              
+
               return GestureDetector(
                 onTap: () {
                   appProvider.selectFlashSaleFilter(index);
@@ -87,15 +84,14 @@ class FlashSaleSection extends StatelessWidget {
             },
           ),
         ),
-        
-        // Product grid
+
         GridView.builder(
           padding: const EdgeInsets.all(16),
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 0.75,
+            childAspectRatio: 0.7,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
           ),
