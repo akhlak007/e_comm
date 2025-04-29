@@ -1,7 +1,14 @@
+// lib/features/shared/presentation/custom_bottom_navigation.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/providers/app_provider.dart';
+
+import '../screens/cart_screen.dart';
+import '../screens/chatscreen.dart';
+import '../screens/home_screen.dart';
+import '../screens/profile_screen.dart';
+import '../screens/wishlist_screen.dart';
 
 class CustomBottomNavigation extends StatelessWidget {
   const CustomBottomNavigation({super.key});
@@ -10,7 +17,7 @@ class CustomBottomNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     final appProvider = Provider.of<AppProvider>(context);
     final currentIndex = appProvider.currentTabIndex;
-    
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -81,16 +88,16 @@ class CustomBottomNavigation extends StatelessWidget {
   }
 
   Widget _buildNavItem(
-    BuildContext context, {
-    required IconData icon,
-    required IconData selectedIcon,
-    required String label,
-    required int index,
-    required int currentIndex,
-    required VoidCallback onTap,
-  }) {
+      BuildContext context, {
+        required IconData icon,
+        required IconData selectedIcon,
+        required String label,
+        required int index,
+        required int currentIndex,
+        required VoidCallback onTap,
+      }) {
     final isSelected = currentIndex == index;
-    
+
     return InkWell(
       onTap: onTap,
       child: AnimatedContainer(
@@ -131,5 +138,33 @@ class CustomBottomNavigation extends StatelessWidget {
 
   void _onItemTapped(BuildContext context, int index) {
     Provider.of<AppProvider>(context, listen: false).setTabIndex(index);
+    late Widget screen;
+    switch (index) {
+      case 0:
+        screen = const HomeScreen();
+        break;
+      case 1:
+        screen = const WishlistScreen();
+        break;
+      case 2:
+        screen = const CartScreen();
+        break;
+      case 3:
+        screen = const ChatScreen();
+        break;
+      case 4:
+        screen = const ProfileScreen();
+        break;
+      default:
+        screen = const HomeScreen();
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => screen),
+    );
   }
 }
+
+
+
+

@@ -646,6 +646,7 @@ import '../widgets/special_offers.dart';
 import '../widgets/categories_section.dart';
 import '../widgets/flash_sale_section.dart';
 import '../widgets/bottom_navigation.dart';
+import 'chatscreen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

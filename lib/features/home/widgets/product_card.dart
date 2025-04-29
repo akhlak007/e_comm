@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/models/product.dart';
 import '../../../core/theme/app_theme.dart';
+import '../screens/product_detail_screen.dart';  // Import your detail screen
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -17,10 +18,9 @@ class ProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         // Navigate to product details
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Viewing ${product.name}'),
-            duration: const Duration(seconds: 1),
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ProductDetailScreen(product: product),
           ),
         );
       },
@@ -154,7 +154,7 @@ class ProductCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '\$${product.discountedPrice.toStringAsFixed(2)}',
+                          '\\${product.discountedPrice.toStringAsFixed(2)}',
                           style: AppTheme.bodySmall.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.primary,
@@ -163,7 +163,7 @@ class ProductCard extends StatelessWidget {
                         if (product.discountedPrice < product.price) ...[
                           const SizedBox(width: 4),
                           Text(
-                            '\$${product.price.toStringAsFixed(2)}',
+                            '\\${product.price.toStringAsFixed(2)}',
                             style: AppTheme.caption.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                               decoration: TextDecoration.lineThrough,
