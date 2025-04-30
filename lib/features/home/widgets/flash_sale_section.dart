@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/models/product.dart';
 import '../../../core/providers/app_provider.dart';
@@ -15,90 +16,71 @@ class FlashSaleSection extends StatelessWidget {
     const filterTypes = ['All', 'Newest', 'Popular', 'Clothes'];
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Header
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Flash Sale',
-                style: AppTheme.heading3,
+              Text('Flash Sale', style: AppTheme.heading3),
+              TextButton(
+                onPressed: () {},
+                child: const Text('See All'),
               ),
-              const SizedBox(width: 10),
-              const Text(
-                'Closing in:',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(width: 5),
-              _buildTimeUnit(context, appProvider.hours.toString().padLeft(2, '0')),
-              const Text(' : ', style: TextStyle(fontWeight: FontWeight.bold)),
-              _buildTimeUnit(context, appProvider.minutes.toString().padLeft(2, '0')),
-              const Text(' : ', style: TextStyle(fontWeight: FontWeight.bold)),
-              _buildTimeUnit(context, appProvider.seconds.toString().padLeft(2, '0')),
             ],
           ),
         ),
 
-        SizedBox(
-          height: 40,
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            scrollDirection: Axis.horizontal,
-            itemCount: filterTypes.length,
-            itemBuilder: (context, index) {
-              final isSelected = appProvider.selectedFlashSaleFilter == index;
+        // Timer
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            children: [
+              Text(
+                'Ends in: ',
+                style: AppTheme.bodySmall.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '23:59:59',
+                  style: AppTheme.caption.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
 
-              return GestureDetector(
-                onTap: () {
-                  appProvider.selectFlashSaleFilter(index);
-                },
-                child: Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.grey[300]!,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      filterTypes[index],
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                  ),
+        // Products Grid
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 200,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: dummyProducts.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: SizedBox(
+                  width: 150,
+                  child: ProductCard(product: dummyProducts[index]),
                 ),
               );
             },
           ),
-        ),
-
-        GridView.builder(
-          padding: const EdgeInsets.all(16),
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.7,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-          ),
-          itemCount: dummyProducts.length,
-          itemBuilder: (context, index) {
-            return ProductCard(product: dummyProducts[index]);
-          },
         ),
       ],
     );

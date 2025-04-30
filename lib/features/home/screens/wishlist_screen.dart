@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Simple model for a wishlist item.
 class WishlistItem {
@@ -22,7 +23,10 @@ class WishlistScreen extends StatefulWidget {
   State<WishlistScreen> createState() => _WishlistScreenState();
 }
 
-class _WishlistScreenState extends State<WishlistScreen> {
+class _WishlistScreenState extends State<WishlistScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
   // Sample wishlist data with real Unsplash images
   final List<WishlistItem> _items = [
     WishlistItem(
@@ -46,6 +50,25 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
   final Set<int> _selected = {};
 
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   void _removeSelected() {
     final toRemove = _selected.toList()..sort((a, b) => b.compareTo(a));
     for (var idx in toRemove) {
@@ -57,204 +80,289 @@ class _WishlistScreenState extends State<WishlistScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final size = MediaQuery.of(context).size;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            children: [
-              // App Bar
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Expanded(
-                    child: Center(
-                      child: Text(
-                        'My Wishlist',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: _selected.isEmpty ? null : () => setState(_removeSelected),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Item list
-              Expanded(
-                child: ListView.separated(
-                  itemCount: _items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, idx) {
-                    final item = _items[idx];
-                    final isSelected = _selected.contains(idx);
-
-                    return Container(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.grey[50],
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              children: [
+                // App Bar
+                Row(
+                  children: [
+                    Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6),
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
                         ],
                       ),
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          // Checkbox
-                          GestureDetector(
-                            onTap: () => setState(() {
-                              isSelected ? _selected.remove(idx) : _selected.add(idx);
-                            }),
-                            child: Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isSelected ? cs.primary : Colors.transparent,
-                                border: Border.all(
-                                  color: isSelected ? cs.primary : Colors.grey.shade400,
-                                  width: 2,
-                                ),
-                              ),
-                              child: isSelected
-                                  ? const Icon(Icons.check, size: 16, color: Colors.white)
-                                  : null,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Text(
+                        'My Wishlist',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ),
+                    if (_selected.isNotEmpty)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
                             ),
-                          ),
-                          const SizedBox(width: 12),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () => setState(_removeSelected),
+                        ),
+                      ),
+                  ],
+                ),
 
-                          // Thumbnail
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              '${item.imageUrl}?w=80&h=80&fit=crop',
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                              loadingBuilder: (c, child, progress) {
-                                if (progress == null) return child;
-                                return Container(
-                                  width: 60,
-                                  height: 60,
-                                  color: Colors.grey.shade200,
-                                  child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                                );
-                              },
-                              errorBuilder: (c, _, __) => Container(
-                                width: 60,
-                                height: 60,
-                                color: Colors.grey.shade200,
-                                child: const Icon(Icons.broken_image, color: Colors.grey),
+                const SizedBox(height: 24),
+
+                // Item list
+                Expanded(
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: ListView.separated(
+                      itemCount: _items.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 16),
+                      itemBuilder: (context, idx) {
+                        final item = _items[idx];
+                        final isSelected = _selected.contains(idx);
+
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
-                            ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-
-                          // Name & price
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Use Flexible so text wraps nicely
-                                Flexible(
-                                  child: Text(
-                                    item.name,
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () => setState(() {
+                                isSelected ? _selected.remove(idx) : _selected.add(idx);
+                              }),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
                                   children: [
-                                    if (item.discountedPrice != null) ...[
-                                      Text(
-                                        '\$${item.price.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade500,
-                                          decoration: TextDecoration.lineThrough,
+                                    // Checkbox
+                                    AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: isSelected ? cs.primary : Colors.transparent,
+                                        border: Border.all(
+                                          color: isSelected ? cs.primary : Colors.grey.shade400,
+                                          width: 2,
                                         ),
                                       ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        '\$${item.discountedPrice!.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: cs.primary,
+                                      child: isSelected
+                                          ? const Icon(Icons.check, size: 16, color: Colors.white)
+                                          : null,
+                                    ),
+                                    const SizedBox(width: 16),
+
+                                    // Thumbnail
+                                    Hero(
+                                      tag: 'wishlist_${item.imageUrl}',
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.network(
+                                          '${item.imageUrl}?w=120&h=120&fit=crop',
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (c, child, progress) {
+                                            if (progress == null) return child;
+                                            return Container(
+                                              width: 80,
+                                              height: 80,
+                                              color: Colors.grey.shade100,
+                                              child: Center(
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  value: progress.expectedTotalBytes != null
+                                                      ? progress.cumulativeBytesLoaded /
+                                                          progress.expectedTotalBytes!
+                                                      : null,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          errorBuilder: (c, _, __) => Container(
+                                            width: 80,
+                                            height: 80,
+                                            color: Colors.grey.shade100,
+                                            child: const Icon(Icons.broken_image,
+                                                color: Colors.grey),
+                                          ),
                                         ),
                                       ),
-                                    ] else ...[
-                                      Text(
-                                        '\$${item.price.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: cs.onSurface,
-                                        ),
+                                    ),
+                                    const SizedBox(width: 16),
+
+                                    // Name & price
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.name,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              height: 1.3,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              if (item.discountedPrice != null) ...[
+                                                Text(
+                                                  '\$${item.price.toStringAsFixed(2)}',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey.shade500,
+                                                    decoration: TextDecoration.lineThrough,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  '\$${item.discountedPrice!.toStringAsFixed(2)}',
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: cs.primary,
+                                                  ),
+                                                ),
+                                              ] else ...[
+                                                Text(
+                                                  '\$${item.price.toStringAsFixed(2)}',
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: cs.onSurface,
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
+
+                                    // Remove button
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline),
+                                      color: Colors.red.shade400,
+                                      onPressed: () => setState(() {
+                                        _items.removeAt(idx);
+                                        _selected.remove(idx);
+                                      }),
+                                    ),
                                   ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
-
-                          // Remove button
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            color: Colors.red.shade400,
-                            onPressed: () => setState(() {
-                              _items.removeAt(idx);
-                              _selected.remove(idx);
-                            }),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                        );
+                      },
+                    ),
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
-              // Action buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _selected.isEmpty ? null : () => setState(_removeSelected),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                // Action buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _selected.isEmpty ? null : () => setState(_removeSelected),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          side: BorderSide(color: cs.primary),
+                        ),
+                        child: Text(
+                          'Remove Selected',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: cs.primary,
+                          ),
+                        ),
                       ),
-                      child: const Text('Remove Selected', style: TextStyle(fontSize: 16)),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _selected.isEmpty ? null : () { /* add to cart */ },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: cs.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _selected.isEmpty ? null : () { /* add to cart */ },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: cs.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Add to Cart',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                      child: const Text('Add to Cart', style: TextStyle(fontSize: 16, color: Colors.white)),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

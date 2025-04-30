@@ -13,13 +13,12 @@ class SpecialOffers extends StatefulWidget {
 }
 
 class _SpecialOffersState extends State<SpecialOffers> {
-  final PageController _pageController = PageController();
+  final PageController _pageController = PageController(viewportFraction: 0.85);
   int _currentPage = 0;
 
   @override
   void initState() {
     super.initState();
-    // Auto scrolling for promotions
     _startAutoScroll();
   }
 
@@ -31,78 +30,60 @@ class _SpecialOffersState extends State<SpecialOffers> {
 
   void _startAutoScroll() {
     Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) {
-        if (_currentPage < dummyPromotions.length - 1) {
-          _currentPage++;
-        } else {
-          _currentPage = 0;
-        }
-        
-        _pageController.animateToPage(
-          _currentPage,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-        
-        _startAutoScroll();
-      }
+      if (!mounted) return;
+      _currentPage = (_currentPage + 1) % dummyPromotions.length;
+      _pageController.animateToPage(
+        _currentPage,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+      _startAutoScroll();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Header with title and see all
+        // Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '#SpecialForYou',
-                style: AppTheme.heading3,
-              ),
-              TextButton(
-                onPressed: () {
-                  // Navigate to all promotions
-                },
-                child: const Text('See All'),
-              ),
+              Text('#SpecialForYou', style: AppTheme.heading3),
+              TextButton(onPressed: () {}, child: const Text('See All')),
             ],
           ),
         ),
-        
-        // Promotion cards carousel
+
+        // Carousel
         SizedBox(
-          height: 160,
+          height: 180,
           child: PageView.builder(
             controller: _pageController,
             itemCount: dummyPromotions.length,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            itemBuilder: (context, index) {
-              return PromotionCard(promotion: dummyPromotions[index]);
+            onPageChanged: (i) => setState(() => _currentPage = i),
+            itemBuilder: (c, i) {
+              return PromotionCard(promotion: dummyPromotions[i]);
             },
           ),
         ),
-        
-        // Page indicator dots
-        const SizedBox(height: 10),
+
+        // Dots
+        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
             dummyPromotions.length,
-            (index) => Container(
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              width: 8,
-              height: 8,
+            (i) => Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: _currentPage == i ? 10 : 8,
+              height: _currentPage == i ? 10 : 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _currentPage == index
+                color: _currentPage == i
                     ? Theme.of(context).colorScheme.primary
                     : Colors.grey[300],
               ),
@@ -121,39 +102,35 @@ class PromotionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+    return AspectRatio(
+      aspectRatio: 320 / 180,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8)],
+        ),
+        clipBehavior: Clip.hardEdge,
         child: Stack(
           children: [
-            // Background Image
+            // Background
             Positioned.fill(
               child: CachedNetworkImage(
                 imageUrl: promotion.image,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Shimmer.fromColors(
+                placeholder: (_, __) => Shimmer.fromColors(
                   baseColor: Colors.grey[300]!,
                   highlightColor: Colors.grey[100]!,
-                  child: Container(
-                    color: Colors.white,
-                  ),
+                  child: Container(color: Colors.white),
                 ),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
+                errorWidget: (_, __, ___) => Container(
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.error),
+                ),
               ),
             ),
-            
-            // Dark overlay gradient
+
+            // Dark gradient
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
@@ -169,107 +146,98 @@ class PromotionCard extends StatelessWidget {
                 ),
               ),
             ),
-            
-            // Limited Time Tag
+
+            // Tag
             Positioned(
-              top: 10,
-              left: 10,
+              top: 12,
+              left: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.6),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   promotion.tag,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
             ),
-            
+
             // Content
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Left side (text content)
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          promotion.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              promotion.subtitle,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              promotion.discount,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 42,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          promotion.disclaimer,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
+                  // Title
+                  Text(
+                    promotion.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  
-                  // Right side (claim button)
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  const SizedBox(height: 4),
+
+                  // Subtitle + discount
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          // Handle claim action
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
+                      Expanded(
+                        child: Text(
+                          promotion.subtitle,
+                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        child: Text(promotion.buttonText),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        promotion.discount,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Disclaimer
+                  Text(
+                    promotion.disclaimer,
+                    style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 10),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  // Button
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 80),
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        ),
+                        child: Text(
+                          promotion.buttonText,
+                          style: const TextStyle(fontSize: 12, color: Colors.white),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -280,3 +248,4 @@ class PromotionCard extends StatelessWidget {
     );
   }
 }
+//i 
